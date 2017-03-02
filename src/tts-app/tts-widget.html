@@ -7,6 +7,7 @@
     <style>
        :host {
         position: relative;
+        margin-bottom: 20px;
       }
       
        :host ::content .tts-context-menu {
@@ -29,13 +30,11 @@
     </style>
     <template is="dom-if" if="[[ttsSections]]">
       <div id="tts-widget">
-        <div style="margin: 20px 0 5px 0;">
-          <button on-tap="onVolumeDownTap" class="btn btn-default">-</button>
-          <span>v</span>
-          <button on-tap="onVolumeUpTap" class="btn btn-default">+</button>
-          <button on-tap="onSpeedDownTap" class="btn btn-default">-</button>
-          <span>r</span>
-          <button on-tap="onSpeedUpTap" class="btn btn-default">+</button>
+        <div>
+          <button on-tap="onVolumeDownTap" class="btn btn-default">v-</button>
+          <button on-tap="onVolumeUpTap" class="btn btn-default">v+</button>
+          <button on-tap="onSpeedDownTap" class="btn btn-default">r-</button>
+          <button on-tap="onSpeedUpTap" class="btn btn-default">r+</button>
           <button on-tap="onPlayAllTap" class="btn btn-success">Play all</button>
           <template is="dom-if" if="[[playingSection]]">
             <button on-tap="onRewindTap" class="btn btn-info">&lt;&lt;</button>
@@ -48,7 +47,7 @@
             <button on-tap="onStopTap" class="btn btn-danger">[ ]</button>
           </template>
         </div>
-        <div class="btn-group" style="margin-bottom: 20px;">
+        <div class="btn-group">
           <template is="dom-repeat" items="[[ttsSections]]">
             <a class="btn btn-info" on-tap="onPlaySectionTap" href="#">[[getPlaySectionLabel(item)]]</a>
           </template>
