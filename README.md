@@ -1,2 +1,2 @@
 # tts-widget
-Cross-browser/platform text to speech controller with follow-along highlighting.
+WIP.  Polymer tag that implements cross-browser/platform text to speech  with follow-along highlighting.

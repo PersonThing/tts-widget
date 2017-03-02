@@ -1,0 +1,525 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../bower_components/rangy/rangy-core.min.js"></script>
+<script src="../../bower_components/rangy/rangy-classapplier.min.js"></script>
+
+<script src="./temp-polyfills.js"></script>
+
+<dom-module id="tts-widget">
+  <template>
+    <style>
+      :host {
+        position: relative;
+      }
+
+      :host ::content .tts-context-menu {
+        position: absolute;
+        z-index: 10000;
+        background: #ddd;
+        border: 1px solid #666;
+      }
+
+      :host ::content .tts-context-menu a {
+        display: block;
+        padding: 10px 20px;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      :host ::content .tts-context-menu a:hover {
+        background: #eee;
+      }
+    </style>
+
+    <template is="dom-if" if="[[ttsSections]]">
+      <div id="tts-widget">
+        <div style="margin: 20px 0 5px 0;">
+          <button on-tap="onVolumeDownTap" class="btn btn-default">-</button>
+          <span>v</span>
+          <button on-tap="onVolumeUpTap" class="btn btn-default">+</button>
+          <button on-tap="onSpeedDownTap" class="btn btn-default">-</button>
+          <span>r</span>
+          <button on-tap="onSpeedUpTap" class="btn btn-default">+</button>
+
+          <button on-tap="onPlayAllTap" class="btn btn-success">Play all</button>
+          <template is="dom-if" if="[[playingSection]]">
+            <button on-tap="onRewindTap" class="btn btn-info">&lt;&lt;</button>
+            <template is="dom-if" if="[[!paused]]">
+              <button on-tap="onPauseTap" class="btn btn-warning">| |</button>
+            </template>
+            <template is="dom-if" if="[[paused]]">
+              <button on-tap="onResumeTap" class="btn btn-success">&gt;</button>
+            </template>
+            <button on-tap="onStopTap" class="btn btn-danger">[ ]</button>
+          </template>
+        </div>
+
+        <div class="btn-group" style="margin-bottom: 20px;">
+          <template is="dom-repeat" items="[[ttsSections]]">
+            <a class="btn btn-info" on-tap="onPlaySectionTap" href="#">[[getPlaySectionLabel(item)]]</a>
+          </template>
+        </div>
+      </div>
+
+      <template is="dom-if" if="[[contextMenuSection]]">
+        <div id="ttsContextMenu" class="tts-context-menu" style="top: [[contextMenuBottom]]px; left: [[contextMenuLeft]]px;">
+          <a on-tap="onContextMenuPlayFromHereTap" href="#">Play from here</a>
+          <a on-tap="onContextMenuPlaySectionTap" href="#">Play [[contextMenuSection.label]]</a>
+        </div>
+      </template>
+    </template>
+  </template>
+  <script>
+    class TTSSection {
+      constructor(label, node) {
+        // label for play section buttons & context menus
+        this.label = label;
+        // node to parse text from
+        this.node = node;
+      }
+    }
+
+    class TTSPhrase {
+      constructor(text, prefix, postfix, node, range) {
+        this.text = text;
+        this.prefix = prefix;
+        this.postfix = postfix;
+        this.range = range;
+        this.node = node;
+      }
+
+      toString() {
+        return this.prefix + this.text + this.postfix;
+      }
+    }
+
+    Polymer({
+      is: 'tts-widget',
+
+      properties: {
+        sections: {
+          type: NodeList,
+          observer: 'observeSectionsChanged'
+        },
+        // todo different default rates for ipad / ipad8 / etc
+        rate: {
+          type: Number,
+          value: 1
+        },
+        volume: {
+          type: Number,
+          value: 1
+        },
+        synth: {
+          type: Object
+        },
+        voices: {
+          type: Object
+        },
+        ttsSections: {
+          type: Array
+        },
+        playingSection: {
+          type: TTSSection
+        },
+        playingPhrase: {
+          type: TTSPhrase
+        },
+        playingUtterance: {
+          type: SpeechSynthesisUtterance
+        },
+        paused: {
+          type: Boolean,
+          value: false
+        },
+        contextMenuTop: {
+          type: Number
+        },
+        contextMenuLeft: {
+          type: Number
+        },
+        contextMenuSection: {
+          type: Object,
+          value: false
+        }
+      },
+
+      // ctor
+      ready() {
+        this.synth = window.speechSynthesis;
+        this.voices = this.synth.getVoices();
+        this.synth.onvoiceschanged = () => {
+          this.voices = this.synth.getVoices();
+        }
+
+        this.rangy = rangy;
+        this.rangy.init();
+        this.highlighter = this.rangy.createClassApplier('tts-highlighter', {
+          tagNames: ['span', 'img']
+        });
+      },
+
+      // property observers
+      observeSectionsChanged(sections) {
+        var nodesAsArray = Array.prototype.slice.apply(sections);
+
+        // set up TTSSection[]
+        this.ttsSections = nodesAsArray.map(n => new TTSSection(n.getAttribute('label'), n));
+
+        // add contextmenu listeners to the elements
+        this.ttsSections.forEach(s => {
+          s.node.addEventListener('contextmenu', e => {
+            // todo skip if highlighterToolActive && isIpad
+
+            // todo bounding box positioning
+            this.contextMenuTop = e.pageY;
+            this.contextMenuLeft = e.pageX;
+            this.contextMenuSection = s;
+
+            this.async(() => {
+              var foc = this.querySelector('#ttsContextMenu a:first-child');
+              foc.addEventListener('blur', e => this.closeContextMenu());
+              foc.focus();
+            });
+
+            e.preventDefault();
+          });
+        });
+      },
+
+      // template helpers
+      getPlaySectionLabel(section) {
+        // if there's only one section, just say "play", otherwise each play section button has a label
+        return this.ttsSections.length > 1 ? section.label : 'Play';
+      },
+
+      // event handlers
+      onVolumeDownTap() {
+        this.volume -= .2;
+        if(this.volume < 0)
+          this.volume = 0;
+
+        this.applySpeechSettings();
+      },
+      onVolumeUpTap() {
+        this.volume += .2;
+        if(this.volume > 1)
+          this.volume = 1;
+
+        this.applySpeechSettings();
+      },
+      onSpeedDownTap() {
+        // todo different rate increment/min/max for ipad / ipad8
+        // todo cap rate
+        this.rate -= .2;
+        if(this.rate < .1)
+          this.rate = .1;
+
+        this.applySpeechSettings();
+      },
+      onSpeedUpTap() {
+        this.rate += .2;
+        if(this.rate > 3)
+          this.rate = 3;
+        
+        this.applySpeechSettings();
+      },
+
+      onPlayAllTap() {
+        this.playAll(this.ttsSections);
+      },
+
+      onPlaySectionTap(e) {
+        this.playSection(e.model.get('item'));
+      },
+
+      onStopTap() {
+        this.stop();
+      },
+
+      onPauseTap() {
+        this.pause();
+        this.paused = true;
+      },
+
+      onResumeTap() {
+        this.resume();
+        this.paused = false;
+      },
+
+      onRewindTap() {
+        this.rewind();
+      },
+
+      onContextMenuPlaySectionTap(e) {
+        console.log('playing cm section');
+        var section = this.contextMenuSection;
+        this.playSection(section);
+        this.closeContextMenu();
+      },
+
+      onContextMenuPlayFromHereTap(e) {
+        var section = this.contextMenuSection;
+        this.playSectionFromHere(section);
+        this.closeContextMenu();
+      },
+
+      closeContextMenu() {
+        this.async(() => {
+          this.contextMenuSection = null;
+        }, 100);
+      },
+
+      // methods that could be on a service
+
+      playAll(sections) {
+        this.queue = sections;
+        this.playNextQueuedSection();
+      },
+
+      playSection(section) {
+        var phrases = this.convertNodeToPhrases(section.node);
+        this.speak(section, phrases);
+      },
+
+      playSectionFromHere(section){
+        var phrases = this.convertNodeToPhrases(section.node);
+
+        // try to find phrase from cursor position
+        // if we don't find one, we just play the whole section
+        var newPhrases = phrases.slice();
+
+        // get node and index of the phrase we're looking for
+        // if the node's within a replacement, find the replacement phrase instead
+        var selection = window.getSelection();
+        var fromNode = selection.baseNode;
+        var fromIndex = selection.baseOffset;
+        if(fromNode.nodeType === 3){
+          var parent = fromNode.parentNode;
+          var replacement = this.isNodeAReplacement(parent) ? parent : parent.closest('.text-to-speech');
+          if(replacement){
+            fromNode = replacement;
+            fromIndex = 0;
+          }
+        }
+
+        while(newPhrases.length) {
+          var p = newPhrases[0];
+          // todo match replacement nodes too
+          // their ranges have the <span> and playFromHereLocation is a textnode or something else inside it
+          if(p.node === fromNode && p.range.endOffset > fromIndex){
+            phrases = newPhrases;
+            break;
+          }
+          newPhrases.shift();
+        }
+        
+        this.speak(section, phrases);
+      },
+
+      applySpeechSettings() {
+        if(this.playingUtterance){
+          this.playingUtterance.rate = this.rate;
+          this.playingUtterance.volume = this.volume;
+
+          this.pause();
+          this.async(() => this.resume(), 1000);
+        }
+
+        return;
+
+
+
+        if(this.playingPhrases == null)
+          return;
+
+        var remainingPhrases = this.playingPhrases;
+        while(remainingPhrases.length > 0) {
+          var p = remainingPhrases.shift();
+          if(p.endIndex === this.playingPhrase.endIndex)
+            break;
+        }
+
+        // if there's only 1 phrase left, just let it finish
+        if(remainingPhrases < 2)
+          return;
+
+        // restart play w/ remaining sections
+        this.speak(this.playingSection, remainingPhrases);
+      },
+
+      speak(section, phrases) {
+        // stop playing if we are
+        if (this.synth.speaking)
+          this.stop(); // will fire onspeechend, which will fire next queue item
+        
+        this.whenStopped(() => {
+          var text = this.convertPhrasesToText(phrases);
+
+          // todo remove debug calls
+          console.debug('speaking:', text);
+
+          var endIndex = 0;
+          phrases.forEach(p => {
+            endIndex += p.toString().length;
+            p.endIndex = endIndex;
+          });
+
+          this.playingSection = section;
+          this.playingPhrases = phrases;
+          
+          // create utterance and hand to synth
+          var msg = new SpeechSynthesisUtterance(text);
+          msg.onboundary = e => this.onSpeechBoundary(e);
+          msg.onerror = e => this.onSpeechError(e);
+          msg.onend = e => this.onSpeechEnd(e);
+          this.playingUtterance = msg;
+          var voice = this.voices.find(v => v.voiceURI === 'native');
+          msg.voice = voice;
+          msg.voiceURI = voice.voiceURI;
+          msg.rate = this.rate;
+          msg.volume = this.volume;
+          this.synth.speak(msg);
+
+        });
+      },
+
+      stop() {
+        this.queue = null;
+        this.synth.cancel();
+      },
+
+      pause() {
+        this.synth.pause();
+      },
+
+      resume() {
+        this.synth.resume();
+      },
+
+      rewind() {
+        this.playSection(this.playingSection);
+      },
+
+      playNextQueuedSection() {
+        if (this.queue == null || this.queue.length == 0)
+          return;
+
+        // get section from queue
+        var section = this.queue.shift();
+        if (section == null)
+          return;
+
+        this.playSection(section);
+      },
+
+      convertNodeToPhrases(node, phrases) {
+        // todo add ability to skip nodes in a dynamic way (static-container)
+
+        phrases = phrases || [];
+        // text nodes are split on white space to highlight individual words
+        if (node.nodeType === 3) {
+          // for white-space only text-nodes, just put a single space text node in with no range
+          // we don't set a range, so it won't be selected
+          if (!node.nodeValue.replace(/\s/g, '').length) {
+            phrases.push(new TTSPhrase(' ', '', '', node, null));
+            return phrases;
+          }
+
+          var nodeText = node.nodeValue;
+          var splitPattern = /\S+/g;
+          var match;
+          while (match = splitPattern.exec(nodeText)) {
+            var text = match[0];
+            var textStart = match.index;
+            var textEnd = splitPattern.lastIndex;
+
+            // if this is not the first word in the textnode, prefix it with a space
+            var prefix = textStart > 0 ? ' ' : '';
+
+            // if this is the last word in the textnode, postfix it with a space
+            var postfix = textEnd === nodeText.length - 1 ? ' ' : '';
+
+            var range = this.rangy.createRange();
+            range.setStart(node, textStart);
+            range.setEnd(node, textEnd);
+            phrases.push(new TTSPhrase(text, prefix, postfix, node, range));
+          }
+          return phrases;
+        }
+
+        // .tts-replacements - single item that highlights the whole replacement for all words within it
+        if (this.isNodeAReplacement(node)) {
+          var text = node.getAttribute('label');
+          var range = this.rangy.createRange();
+          range.setStartBefore(node);
+          range.setEndAfter(node);
+          phrases.push(new TTSPhrase(text, '', '', node, range));
+          return phrases;
+        }
+
+        // otherwise, loop its children
+        node.childNodes.forEach(c => this.convertNodeToPhrases(c, phrases));
+        return phrases;
+      },
+
+      isNodeAReplacement(node) {
+        return node.classList != null && node.classList.contains('text-to-speech');
+      },
+
+      convertPhrasesToText(phrases) {
+        return phrases.map(p => p.toString()).join('');
+      },
+
+      onSpeechBoundary(event) {
+        // find the first phrase whose lastIndex is >= this event's index
+        var phrases = this.playingPhrases;
+        var phrase = phrases.find(p => event.charIndex < p.endIndex && p.range != null);
+
+        // remove highlights from prior sections if it's a different one
+        if (this.playingPhrase != null && this.playingPhrase.endIndex != phrase.endIndex)
+          this.removeHighlight();
+
+        // highlight this phrase's range if it has one (white-space only phrases wouldn't have a range, just a prefix or postfix to space out the other phrases)
+        if (!this.highlighter.isAppliedToRange(phrase.range))
+          this.applyHighlight(phrase);
+
+        this.playingPhrase = phrase;
+      },
+
+      onSpeechEnd(event) {
+        this.removeHighlight();
+        this.playingSection = null;
+        this.playingPhrases = null;
+        this.playingPhrase = null;
+
+        if (this.queue != null && this.queue.length)
+          this.playNextQueuedSection();
+      },
+
+      whenStopped(listener) {
+        this.async(() => {
+          if(!this.synth.speaking)
+            return listener();
+          
+          this.whenStopped(listener);
+        }, 100);
+      },
+
+      onSpeechError(event) {
+        console.log('speech error', event);
+      },
+
+      applyHighlight(phrase) {
+        console.log('tts', phrase.endIndex, phrase.text)
+        this.highlighter.applyToRange(phrase.range);
+      },
+
+      removeHighlight() {
+        if (this.playingPhrase != null && this.playingPhrase.range != null && this.highlighter.isAppliedToRange(
+            this.playingPhrase.range)) {
+          this.highlighter.undoToRange(this.playingPhrase.range);
+        }
+      }
+    });
+  </script>
+</dom-module>

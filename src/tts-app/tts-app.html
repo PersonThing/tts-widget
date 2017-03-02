@@ -1,0 +1,220 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="./tts-widget.html" />
+
+<dom-module id="tts-app">
+  <template>
+
+    <style>
+      :host ::content .tts-highlighter {
+        background-color: #bce8f1;
+      }
+
+			:host ::content .tts-section {
+				border: 1px dotted #bce8f1;
+				padding: 10px;
+				cursor: pointer;
+			}
+
+			:host ::content .tts-section p:last-child {
+				margin-bottom: 0;
+			}
+    </style>
+
+		<div class="container">
+
+			<!-- tts-widget 
+			databind its sections property to a list of dom nodes that contain text you want the widget to speak
+			each root dom node should have a label attribute to be used in sections dropdown and contextmenus -->
+			<tts-widget sections="[[sampleSections]]"></tts-widget>
+
+			<!-- sample sections for tts-widget to speak
+				note that .tts-section is not required to make a node speakable.. just using it in this sample app to build my sections list -->
+
+			<div class="row">
+				<div class="col-md-6">
+
+					<blockquote class="tts-section" label="passage" style="overflow-y: scroll; max-height: 200px;">
+						<p class="style-scope item-viewer">
+							<strong class="style-scope item-viewer">DIRECTIONS: <span class="text-to-speech style-scope item-viewer" label="Reed">Read</span> the passage and then answer the questions that follow.</strong>
+						</p>
+						<p class="Passage_Title style-scope item-viewer">
+							<span style="font-weight: normal" class="style-scope item-viewer">Excerpt from </span>
+							<strong class="style-scope item-viewer">The Secret of the Mattang</strong>
+						</p>
+						<p class="Passage_Byline style-scope item-viewer">by Jason O'Hare</p>
+						<ul class="Passage_Text_Para_Number style-scope item-viewer">
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">A long time ago, a Marshallese boy named Kamena lived in a village on an island in the Pacific Ocean. Every
+									night, he went to the palm-tree grove to gather coconuts for his mother. Some of the trees grew horizontally,
+									their trunks jutting out from the coast to reach over the ocean. Before gathering coconuts, Kamena liked
+									to sit on one of these trunks and look for his father's canoe.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Last season, Father had left with 20 other men to search for new lands. The island was getting crowded,
+									and Father's job was to find new places for people to live.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">But Kamena didn't understand how Father would find his way home.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">"Don't worry, Kamena," his father had said. "Even when I'm far away, the ocean will tell me the way home.
+									The ocean has its own language, and the mattang holds the secret to understanding that language."</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">The mattang was made of sticks tied with coconut fibers. Some of the sticks crossed one way; some crossed
+									another way. A few sticks curved from top to bottom. Father had tied five small shells onto it, making
+									it look even more confusing. Then Father had handed the mattang to Kamena.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">"But you need it," Kamena said.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">"I know its secrets already," said Father. "You keep it safe and remember that I always have a way of finding
+									home."</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Father had left the next morning, and Kamena became as determined as the wind to learn the mattang's secrets.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">But tonight he was no closer to discovering those secrets than he was then.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">It was just after sunset, and the first stars shone. Time to get to work. When Kamena stood up, the palm
+									tree bounced, and something fell off the end with a splash.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">What luck! Nearly a dozen ripe coconuts bobbed in the ocean. Kamena could bring them home to Mother.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">He scurried along the trunk back to the water's edge. Waiting for the waves to wash the coconuts to shore
+									would be easier than hanging from the tree to pick them up.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">But a curious thing happened. The coconuts floated away. In fact, the longer Kamena waited, the farther
+									the coconuts floated.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">He needed those!</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">He was about to swim after them when he realized he might end up floating out into the ocean along with
+									the coconuts. But how could that be if he saw wave after wave washing onto the beach?</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">It reminded Kamena of something Father had shown him. They'd been fishing together near the coral reef.
+									It was always calm there, and the reef was so big that it popped out of the water like a whale.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">After baiting his shell hook with a fat piece of fish, Kamena had plopped it into the water, sending ripples
+									across the calm lagoon.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">"Watch the ripples," said Father.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">The ripples had traveled across the water like a set of waves on a tiny ocean. When they had hit the coral,
+									they bounced off and traveled back to where Kamena had thrown the bait.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Now Kamena looked at the coconuts. He guessed what was happening. A wave had bounced off the island, the
+									way ripples had bounced off the coral.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">He picked up the mattang. It made sense now! The five shells were islands. The sticks of crisscrossing
+									wood showed the pattern of waves bouncing between the islands. If Father could tell the direction the
+									waves came from, he could tell where the islands were!</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">That was the secret! He had to tell Mother. He forgot about the coconuts and raced back to the village.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">But everyone in the village was gathered around a blazing fire. What was going on? One of the men standing
+									next to the fire turned to face him.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Kamena's heart leaped. It was Father!</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Kamena nearly knocked him over when he ran to him.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Father laughed. "We returned," he said, "just as I told you we would." Then Father noticed the mattang.</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">"I know the secret," Kamena said. "I know the mattang shows the waves, just like the ripples in the lagoon."</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">Father smiled. "I knew you could figure out its secret. And do you know what that means? It means you're
+									ready to come on our next voyage."</p>
+							</li>
+							<li class="style-scope item-viewer">
+								<p class="Passage_Text_Para_Number style-scope item-viewer">That night, the villagers shared songs and stories as they ate fish cooked over an open fire. But nobody
+									was happier than Kamena. Soon he would see the places Father talked about. And, just like Father, he
+									would always be able to find his way home.</p>
+							</li>
+						</ul>
+						<hr class="diamonds style-scope item-viewer">
+						<hr class="passage style-scope item-viewer">
+						<span class="acknowledgement style-scope item-viewer">
+							<span class="style-scope item-viewer">Jason O'Hare, </span>
+							"Secret of the Mattang,"
+							<em class="style-scope item-viewer">
+								<span class="style-scope item-viewer">Highlights for Children, Inc.</span>
+							</em>
+							<span  class="style-scope item-viewer"> 67, no. 5 (2012).</span>
+						</span>
+					</blockquote>
+
+				</div>
+
+				<div class="col-md-6">
+
+					<div class="tts-section" label="question">
+						<p><span class="text-to-speech" label="Question 1.">1.</span> Why are you such <span class="text-to-speech" label="A">a</span> bonehead?</p>
+					</div>
+
+					<div class="tts-section" label="answers">
+						<ol style="list-style-type: none;">
+							<li><span class="text-to-speech" label="Answer A.">A.</span> I don't know.</li>
+							<li><span class="text-to-speech" label="Answer B.">B.</span> I know you are, but what am I?</li>
+							<li><span class="text-to-speech" label="Answer C.">C.</span> I have $24.37</li>
+						</ol>
+					</div>
+
+				</div>
+			</div>
+
+			
+			<div class="tts-section" label="warning">
+				just a very <span class="text-to-speech" label="small">short</span> warning
+			</div>
+
+			<div class="tts-section" label="success">
+				<span class="text-to-speech" label="super">short</span> success message
+			</div>
+
+			<div class="tts-section" label="$">
+				<span class="text-to-speech" label="dollar dollar bills">$</span> y'all
+			</div>
+
+			<div class="tts-section" label="b2b replacements">
+				<p><span class="text-to-speech" label="Question 1">question 1</span> <span class="text-to-speech" label="is good">is good</span></p>
+			</div>
+
+		</div>
+  </template>
+
+	<script>
+		Polymer({
+			is: 'tts-app',
+
+			properties: {
+        sampleSections: { type: NodeList }
+			},
+
+			ready() {
+				this.sampleSections = this.querySelectorAll('.tts-section');
+			}
+		})
+	</script>
+</dom-module>

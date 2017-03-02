@@ -1,0 +1,7 @@
+{
+  "name": "tts",
+  "short_name": "tts",
+  "description": "tts w highlighting",
+  "start_url": "/",
+  "display": "standalone"
+}
